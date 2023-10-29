@@ -99,7 +99,7 @@ func (p *PastePostHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.Header().Set("Location", "/paste/html/"+key)
-	w.WriteHeader(http.StatusTemporaryRedirect)
+	w.WriteHeader(http.StatusFound)
 }
 
 func main() {

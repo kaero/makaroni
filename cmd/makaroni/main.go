@@ -3,6 +3,11 @@ package main
 import (
 	"flag"
 	"github.com/kaero/makaroni"
+	"github.com/kaero/makaroni/helpers"
+	"github.com/kaero/makaroni/middleware"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"os"
@@ -10,8 +15,8 @@ import (
 )
 
 func main() {
-	address := flag.String("address", os.Getenv("MKRN_ADDRESS"), "Address to serve")
-	multipartMaxMemoryEnv, err := strconv.ParseInt(os.Getenv("MKRN_MULTIPART_MAX_MEMORY"), 0, 64)
+	address := flag.String("address", helpers.Getenv("MKRN_ADDRESS", "localhost:8080"), "Address to serve")
+	multipartMaxMemoryEnv, err := strconv.ParseInt(helpers.Getenv("MKRN_MULTIPART_MAX_MEMORY", "100"), 0, 64)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -24,6 +29,7 @@ func main() {
 	s3Bucket := flag.String("s3-bucket", os.Getenv("MKRN_S3_BUCKET"), "S3 bucket")
 	s3KeyID := flag.String("s3-key-id", os.Getenv("MKRN_S3_KEY_ID"), "S3 key ID")
 	s3SecretKey := flag.String("s3-secret-key", os.Getenv("MKRN_S3_SECRET_KEY"), "S3 secret key")
+	debug := flag.Bool("debug", false, "Debug mode, using local file system instead of S3")
 	help := flag.Bool("help", false, "Print usage")
 	flag.Parse()
 	if *help {
@@ -31,24 +37,48 @@ func main() {
 		os.Exit(0)
 	}
 
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(
+		collectors.NewGoCollector(),
+		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+	)
+
 	indexHTML, err := makaroni.RenderIndexPage(*logoURL)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	uploadFunc, err := makaroni.NewUploader(*s3Endpoint, *s3Region, *s3Bucket, *s3KeyID, *s3SecretKey)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	var uploadFunc makaroni.UploadFunc
 
+	if *debug {
+		uploadFunc, err = makaroni.NewLocalUploader()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	} else {
+		uploadFunc, err = makaroni.NewUploader(*s3Endpoint, *s3Region, *s3Bucket, *s3KeyID, *s3SecretKey)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
 	mux := http.NewServeMux()
-	mux.Handle("/", &makaroni.PasteHandler{
-		IndexHTML:          indexHTML,
-		Upload:             uploadFunc,
-		ResultURLPrefix:    *resultURLPrefix,
-		Style:              *style,
-		MultipartMaxMemory: *multipartMaxMemory,
-	})
+	mux.Handle("/",
+		middleware.HttpNew(
+			registry, nil).WrapHandler("/", &makaroni.PasteHandler{
+			IndexHTML:          indexHTML,
+			Upload:             uploadFunc,
+			ResultURLPrefix:    *resultURLPrefix,
+			Style:              *style,
+			MultipartMaxMemory: *multipartMaxMemory,
+		}))
+	mux.Handle(
+		"/metrics",
+		middleware.HttpNew(
+			registry, nil).
+			WrapHandler("/metrics", promhttp.HandlerFor(
+				registry,
+				promhttp.HandlerOpts{}),
+			))
 
 	server := http.Server{
 		Addr:    *address,

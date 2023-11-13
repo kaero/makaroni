@@ -1,7 +1,7 @@
 package makaroni
 
 import (
-	"github.com/alecthomas/chroma/quick"
+	"fmt"
 	"github.com/google/uuid"
 	"log"
 	"net/http"
@@ -13,6 +13,7 @@ var contentTypeText = "text/plain"
 
 type PasteHandler struct {
 	IndexHTML          []byte
+	OutputHTMLPre      []byte
 	Upload             func(key string, content string, contentType string) error
 	Style              string
 	ResultURLPrefix    string
@@ -53,14 +54,6 @@ func (p *PasteHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		syntax = "plaintext"
 	}
 
-	builder := strings.Builder{}
-	// todo: customize HTML formatter
-	if err := quick.Highlight(&builder, content, syntax, "html", p.Style); err != nil {
-		RespondServerInternalError(w, err)
-		return
-	}
-	html := builder.String()
-
 	uuidV4, err := uuid.NewRandom()
 	if err != nil {
 		RespondServerInternalError(w, err)
@@ -68,6 +61,19 @@ func (p *PasteHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	keyRaw := uuidV4.String()
 	keyHTML := keyRaw + ".html"
+	urlHTML := p.ResultURLPrefix + keyHTML
+	urlRaw := p.ResultURLPrefix + keyRaw
+
+	builder := strings.Builder{}
+	// todo: better templating
+	builder.Write(p.OutputHTMLPre)
+	builder.Write([]byte(fmt.Sprintf("<div class=\"nav\"><a href=\"%s\">raw</a></div>", urlRaw)))
+
+	if err := highlight(&builder, content, syntax, p.Style); err != nil {
+		RespondServerInternalError(w, err)
+		return
+	}
+	html := builder.String()
 
 	if err := p.Upload(keyRaw, content, contentTypeText); err != nil {
 		RespondServerInternalError(w, err)
@@ -79,6 +85,6 @@ func (p *PasteHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.Header().Set("Location", p.ResultURLPrefix+keyHTML)
+	w.Header().Set("Location", urlHTML)
 	w.WriteHeader(http.StatusFound)
 }

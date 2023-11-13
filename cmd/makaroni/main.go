@@ -36,6 +36,11 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	outputPreHTML, err := makaroni.RenderOutputPre(*logoURL)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	uploadFunc, err := makaroni.NewUploader(*s3Endpoint, *s3Region, *s3Bucket, *s3KeyID, *s3SecretKey)
 	if err != nil {
 		log.Fatalln(err)
@@ -44,6 +49,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/", &makaroni.PasteHandler{
 		IndexHTML:          indexHTML,
+		OutputHTMLPre:      outputPreHTML,
 		Upload:             uploadFunc,
 		ResultURLPrefix:    *resultURLPrefix,
 		Style:              *style,

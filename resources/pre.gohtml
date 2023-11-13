@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Makaroni</title>
+<style>
+body { margin: 0; }
+input, select, textarea {
+    font-family: inherit;
+    font-size: 100%;
+    line-height: 1.15;
+    margin: 0;
+    text-transform: none;
+}
+.content {
+    margin: 0 auto;
+    max-width: min(100% - 32px,1296px);
+    font: 16px sans-serif;
+}
+.header {
+    padding: 20px 0;
+}
+.row {
+    padding-bottom: 20px;
+}
+textarea {
+    display: block;
+    min-width: 100%;
+    min-height: 200px;
+    height: max(300px, 100vh - 300px);
+}
+</style>
+<body>
+<div class="content">
+    <div class="header"><img src="{{.LogoURL}}" alt="logo"></div>

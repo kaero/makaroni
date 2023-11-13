@@ -13,13 +13,16 @@ import (
 //go:embed resources/index.gohtml
 var indexHTML []byte
 
+//go:embed resources/pre.gohtml
+var outputPreHTML []byte
+
 type IndexData struct {
 	LogoURL  string
 	LangList []string
 }
 
-func RenderIndexPage(logoURL string) ([]byte, error) {
-	tpl, err := template.New("index").Parse(string(indexHTML))
+func renderPage(pageTemplate string, logoURL string) ([]byte, error) {
+	tpl, err := template.New("index").Parse(pageTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -34,4 +37,12 @@ func RenderIndexPage(logoURL string) ([]byte, error) {
 	}
 
 	return []byte(result.String()), nil
+}
+
+func RenderIndexPage(logoURL string) ([]byte, error) {
+	return renderPage(string(indexHTML), logoURL)
+}
+
+func RenderOutputPre(logoURL string) ([]byte, error) {
+	return renderPage(string(outputPreHTML), logoURL)
 }

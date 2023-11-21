@@ -16,7 +16,15 @@ func main() {
 		log.Fatalln(err)
 	}
 	multipartMaxMemory := flag.Int64("multipart-max-memory", multipartMaxMemoryEnv, "Maximum memory for multipart form parser")
-	resultURLPrefix := flag.String("result-url-prefix", os.Getenv("MKRN_RESULT_URL_PREFIX"), "Upload result URL prefix.")
+	domain := flag.String("domain-url", os.Getenv("MKRN_DOMAIN_URL"), "Domain url with schema.")
+	domainUrl, err := url.Parse(domain)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	resultSuffix := flag.String("result-url-prefix", os.Getenv("MKRN_RESULT_SUFFIX"), "Upload result suffix.")
+	domainUrl.Path = resultSuffix
+
 	logoURL := flag.String("logo-url", os.Getenv("MKRN_LOGO_URL"), "Your logo URL for the form page")
 	style := flag.String("style", os.Getenv("MKRN_STYLE"), "Formatting style")
 	s3Endpoint := flag.String("s3-endpoint", os.Getenv("MKRN_S3_ENDPOINT"), "S3 endpoint")
@@ -31,12 +39,12 @@ func main() {
 		os.Exit(0)
 	}
 
-	indexHTML, err := makaroni.RenderIndexPage(*logoURL)
+	indexHTML, err := makaroni.RenderIndexPage(*logoURL, *domain)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	outputPreHTML, err := makaroni.RenderOutputPre(*logoURL)
+	outputPreHTML, err := makaroni.RenderOutputPre(*logoURL, *domain)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -51,7 +59,7 @@ func main() {
 		IndexHTML:          indexHTML,
 		OutputHTMLPre:      outputPreHTML,
 		Upload:             uploadFunc,
-		ResultURLPrefix:    *resultURLPrefix,
+		ResultURLPrefix:    *domainUrl.String(),
 		Style:              *style,
 		MultipartMaxMemory: *multipartMaxMemory,
 	})

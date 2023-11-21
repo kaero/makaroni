@@ -5,7 +5,6 @@ import (
 	"github.com/kaero/makaroni"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 )
@@ -17,15 +16,8 @@ func main() {
 		log.Fatalln(err)
 	}
 	multipartMaxMemory := flag.Int64("multipart-max-memory", multipartMaxMemoryEnv, "Maximum memory for multipart form parser")
-	domain := flag.String("domain-url", os.Getenv("MKRN_DOMAIN_URL"), "Domain url with schema.")
-	domainUrl, err := url.Parse(*domain)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	resultSuffix := flag.String("result-url-prefix", os.Getenv("MKRN_RESULT_SUFFIX"), "Upload result suffix.")
-	domainUrl.Path = *resultSuffix
-
+	indexURL := flag.String("domain-url", os.Getenv("MKRN_INDEX_URL"), "URL to the index page")
+	resultURLPrefix := flag.String("result-url-prefix", os.Getenv("MKRN_RESULT_URL_PREFIX"), "Upload result URL prefix.")
 	logoURL := flag.String("logo-url", os.Getenv("MKRN_LOGO_URL"), "Your logo URL for the form page")
 	style := flag.String("style", os.Getenv("MKRN_STYLE"), "Formatting style")
 	s3Endpoint := flag.String("s3-endpoint", os.Getenv("MKRN_S3_ENDPOINT"), "S3 endpoint")
@@ -40,12 +32,12 @@ func main() {
 		os.Exit(0)
 	}
 
-	indexHTML, err := makaroni.RenderIndexPage(*logoURL, *domain)
+	indexHTML, err := makaroni.RenderIndexPage(*logoURL, *indexURL)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	outputPreHTML, err := makaroni.RenderOutputPre(*logoURL, *domain)
+	outputPreHTML, err := makaroni.RenderOutputPre(*logoURL, *indexURL)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -60,7 +52,7 @@ func main() {
 		IndexHTML:          indexHTML,
 		OutputHTMLPre:      outputPreHTML,
 		Upload:             uploadFunc,
-		ResultURL:          domainUrl.String(),
+		ResultURLPrefix:    *resultURLPrefix,
 		Style:              *style,
 		MultipartMaxMemory: *multipartMaxMemory,
 	})

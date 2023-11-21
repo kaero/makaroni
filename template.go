@@ -18,11 +18,11 @@ var outputPreHTML []byte
 
 type IndexData struct {
 	LogoURL  string
-	Domain   string
+	IndexURL string
 	LangList []string
 }
 
-func renderPage(pageTemplate string, logoURL string, domain string) ([]byte, error) {
+func renderPage(pageTemplate string, logoURL string, indexURL string) ([]byte, error) {
 	tpl, err := template.New("index").Parse(pageTemplate)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func renderPage(pageTemplate string, logoURL string, domain string) ([]byte, err
 	result := strings.Builder{}
 	data := IndexData{
 		LogoURL:  logoURL,
-		Domain:   domain,
+		IndexURL: indexURL,
 		LangList: lexers.Names(false),
 	}
 	if err := tpl.Execute(&result, &data); err != nil {
@@ -41,10 +41,10 @@ func renderPage(pageTemplate string, logoURL string, domain string) ([]byte, err
 	return []byte(result.String()), nil
 }
 
-func RenderIndexPage(logoURL string, domain string) ([]byte, error) {
-	return renderPage(string(indexHTML), logoURL, domain)
+func RenderIndexPage(logoURL string, indexURL string) ([]byte, error) {
+	return renderPage(string(indexHTML), logoURL, indexURL)
 }
 
-func RenderOutputPre(logoURL string, domain string) ([]byte, error) {
-	return renderPage(string(outputPreHTML), logoURL, domain)
+func RenderOutputPre(logoURL string, indexURL string) ([]byte, error) {
+	return renderPage(string(outputPreHTML), logoURL, indexURL)
 }

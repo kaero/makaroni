@@ -18,7 +18,7 @@ var outputPreHTML []byte
 
 type IndexData struct {
 	LogoURL  string
-	domain string
+	Domain   string
 	LangList []string
 }
 
@@ -31,7 +31,7 @@ func renderPage(pageTemplate string, logoURL string, domain string) ([]byte, err
 	result := strings.Builder{}
 	data := IndexData{
 		LogoURL:  logoURL,
-		domain: domain,
+		Domain:   domain,
 		LangList: lexers.Names(false),
 	}
 	if err := tpl.Execute(&result, &data); err != nil {

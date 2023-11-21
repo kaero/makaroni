@@ -5,6 +5,7 @@ import (
 	"github.com/kaero/makaroni"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 )
@@ -17,13 +18,13 @@ func main() {
 	}
 	multipartMaxMemory := flag.Int64("multipart-max-memory", multipartMaxMemoryEnv, "Maximum memory for multipart form parser")
 	domain := flag.String("domain-url", os.Getenv("MKRN_DOMAIN_URL"), "Domain url with schema.")
-	domainUrl, err := url.Parse(domain)
+	domainUrl, err := url.Parse(*domain)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	resultSuffix := flag.String("result-url-prefix", os.Getenv("MKRN_RESULT_SUFFIX"), "Upload result suffix.")
-	domainUrl.Path = resultSuffix
+	domainUrl.Path = *resultSuffix
 
 	logoURL := flag.String("logo-url", os.Getenv("MKRN_LOGO_URL"), "Your logo URL for the form page")
 	style := flag.String("style", os.Getenv("MKRN_STYLE"), "Formatting style")
@@ -59,7 +60,7 @@ func main() {
 		IndexHTML:          indexHTML,
 		OutputHTMLPre:      outputPreHTML,
 		Upload:             uploadFunc,
-		ResultURLPrefix:    *domainUrl.String(),
+		ResultURL:          domainUrl.String(),
 		Style:              *style,
 		MultipartMaxMemory: *multipartMaxMemory,
 	})

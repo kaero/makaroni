@@ -16,7 +16,7 @@ func main() {
 		log.Fatalln(err)
 	}
 	multipartMaxMemory := flag.Int64("multipart-max-memory", multipartMaxMemoryEnv, "Maximum memory for multipart form parser")
-	indexURL := flag.String("domain-url", os.Getenv("MKRN_INDEX_URL"), "URL to the index page")
+	indexURL := flag.String("index-url", os.Getenv("MKRN_INDEX_URL"), "URL to the index page")
 	resultURLPrefix := flag.String("result-url-prefix", os.Getenv("MKRN_RESULT_URL_PREFIX"), "Upload result URL prefix.")
 	logoURL := flag.String("logo-url", os.Getenv("MKRN_LOGO_URL"), "Your logo URL for the form page")
 	style := flag.String("style", os.Getenv("MKRN_STYLE"), "Formatting style")

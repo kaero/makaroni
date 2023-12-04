@@ -19,6 +19,7 @@ func main() {
 	indexURL := flag.String("index-url", os.Getenv("MKRN_INDEX_URL"), "URL to the index page")
 	resultURLPrefix := flag.String("result-url-prefix", os.Getenv("MKRN_RESULT_URL_PREFIX"), "Upload result URL prefix.")
 	logoURL := flag.String("logo-url", os.Getenv("MKRN_LOGO_URL"), "Your logo URL for the form page")
+	faviconURL := flag.String("favicon-url", os.Getenv("MKRN_FAVICON_URL"), "Your favicon URL")
 	style := flag.String("style", os.Getenv("MKRN_STYLE"), "Formatting style")
 	s3Endpoint := flag.String("s3-endpoint", os.Getenv("MKRN_S3_ENDPOINT"), "S3 endpoint")
 	s3Region := flag.String("s3-region", os.Getenv("MKRN_S3_REGION"), "S3 region")
@@ -32,12 +33,12 @@ func main() {
 		os.Exit(0)
 	}
 
-	indexHTML, err := makaroni.RenderIndexPage(*logoURL, *indexURL)
+	indexHTML, err := makaroni.RenderIndexPage(*logoURL, *indexURL, *faviconURL)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	outputPreHTML, err := makaroni.RenderOutputPre(*logoURL, *indexURL)
+	outputPreHTML, err := makaroni.RenderOutputPre(*logoURL, *indexURL, *faviconURL)
 	if err != nil {
 		log.Fatalln(err)
 	}

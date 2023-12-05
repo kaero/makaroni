@@ -17,12 +17,13 @@ var indexHTML []byte
 var outputPreHTML []byte
 
 type IndexData struct {
-	LogoURL  string
-	IndexURL string
-	LangList []string
+	LogoURL    string
+	IndexURL   string
+	LangList   []string
+	FaviconURL string
 }
 
-func renderPage(pageTemplate string, logoURL string, indexURL string) ([]byte, error) {
+func renderPage(pageTemplate string, logoURL string, indexURL string, faviconURL string) ([]byte, error) {
 	tpl, err := template.New("index").Parse(pageTemplate)
 	if err != nil {
 		return nil, err
@@ -30,9 +31,10 @@ func renderPage(pageTemplate string, logoURL string, indexURL string) ([]byte, e
 
 	result := strings.Builder{}
 	data := IndexData{
-		LogoURL:  logoURL,
-		IndexURL: indexURL,
-		LangList: lexers.Names(false),
+		LogoURL:    logoURL,
+		IndexURL:   indexURL,
+		LangList:   lexers.Names(false),
+		FaviconURL: faviconURL,
 	}
 	if err := tpl.Execute(&result, &data); err != nil {
 		return nil, err
@@ -41,10 +43,10 @@ func renderPage(pageTemplate string, logoURL string, indexURL string) ([]byte, e
 	return []byte(result.String()), nil
 }
 
-func RenderIndexPage(logoURL string, indexURL string) ([]byte, error) {
-	return renderPage(string(indexHTML), logoURL, indexURL)
+func RenderIndexPage(logoURL string, indexURL string, faviconURL string) ([]byte, error) {
+	return renderPage(string(indexHTML), logoURL, indexURL, faviconURL)
 }
 
-func RenderOutputPre(logoURL string, indexURL string) ([]byte, error) {
-	return renderPage(string(outputPreHTML), logoURL, indexURL)
+func RenderOutputPre(logoURL string, indexURL string, faviconURL string) ([]byte, error) {
+	return renderPage(string(outputPreHTML), logoURL, indexURL, faviconURL)
 }
